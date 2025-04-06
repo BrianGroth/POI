@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -41,8 +41,15 @@
         h1 {
             text-align: center;
             color: var(--accent-color);
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.5rem;
             font-weight: 600;
+        }
+
+        /* Location Description Under Title */
+        #location-info {
+            text-align: center;
+            color: var(--muted-text);
+            margin-bottom: 1.5rem;
         }
 
         /* Status Messages */
@@ -69,23 +76,23 @@
             50% { opacity: 1; transform: scale(1); }
         }
 
-
         /* POI Grid Layout */
         #poi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem; /* Increased gap slightly */
+            gap: 1.5rem;
         }
 
-        /* Individual POI Tile Styling */
+        /* Individual POI Tile Styling with Additional Color Variation */
         .poi-tile {
-            background-color: var(--card-bg);
+            background: linear-gradient(135deg, #ffffff, #f8fbff);
             border-radius: var(--border-radius);
             box-shadow: var(--card-shadow);
             padding: 1rem;
             display: flex;
             flex-direction: column;
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid #dee2e6;
         }
 
         .poi-tile:hover {
@@ -93,92 +100,78 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
 
+        /* Centered Image Styling */
         .poi-tile img {
-            width: 100%;
-            height: 180px;
+            display: block;
+            max-width: 100%;
+            max-height: 180px;
             object-fit: cover;
-            border-radius: var(--border-radius) var(--border-radius) 0 0;
-            margin: -1rem -1rem 1rem -1rem;
+            border-radius: var(--border-radius);
+            margin: 0 auto 1rem auto;
             background-color: #eee;
             border-bottom: 1px solid #eee;
         }
 
-         .poi-tile .no-image {
-             display: none;
-         }
+        .poi-tile .no-image {
+            display: none;
+        }
 
         /* Title Styling */
         .poi-tile h3 {
             font-size: 1.2rem;
             font-weight: 600;
-            color: var(--accent-color); /* Keep title color distinct */
-            margin-bottom: 0.25rem; /* Reduced margin */
+            color: var(--accent-color);
+            margin-bottom: 0.25rem;
         }
         .poi-tile h3 a {
             text-decoration: none;
-            color: inherit; /* Inherit color from h3 */
+            color: inherit;
         }
-         .poi-tile h3 a:hover {
-             text-decoration: underline;
-             color: var(--link-color); /* Darker blue on hover */
-         }
+        .poi-tile h3 a:hover {
+            text-decoration: underline;
+            color: var(--link-color);
+        }
 
-        /* Distance Styling */
+        /* Distance Styling as a Hyperlink */
         .poi-distance {
             font-size: 0.9rem;
             font-weight: 500;
             color: var(--muted-text);
             margin-bottom: 0.5rem;
+            text-decoration: none;
         }
 
         /* Description Styling */
         .poi-tile p.poi-description {
             font-size: 0.95rem;
-            color: var(--text-color); /* Slightly darker than distance */
+            color: var(--text-color);
             flex-grow: 1;
-            margin-bottom: 1rem; /* Space before map link */
+            margin-bottom: 1rem;
             overflow: hidden;
             display: -webkit-box;
-            -webkit-line-clamp: 4; /* Limit lines */
+            -webkit-line-clamp: 4;
             -webkit-box-orient: vertical;
         }
 
         .poi-tile p.no-description {
-             font-style: italic;
-             color: var(--muted-text);
+            font-style: italic;
+            color: var(--muted-text);
         }
-
-        /* Map Link Styling */
-        .poi-map-link {
-             display: inline-block;
-             padding: 0.5rem 1rem;
-             background-color: var(--accent-color);
-             color: white;
-             text-decoration: none;
-             border-radius: calc(var(--border-radius) / 2);
-             text-align: center;
-             font-weight: 500;
-             transition: background-color 0.2s ease;
-             margin-top: auto; /* Push to bottom if description is short */
-        }
-        .poi-map-link:hover {
-            background-color: var(--link-color);
-        }
-
     </style>
 </head>
 <body>
 
     <div id="app-container">
         <h1>Nearby Explorer</h1>
+        <p id="location-info">Find Points of Interest (POI) near </p>
         <div id="status-message">Initializing...</div>
-        <div id="poi-grid">
-            </div>
+        <div id="poi-grid"></div>
     </div>
 
     <script>
         const statusElement = document.getElementById('status-message');
         const gridElement = document.getElementById('poi-grid');
+        const locationInfoElement = document.getElementById('location-info');
         const OVERPASS_API_URL = 'https://overpass-api.de/api/interpreter';
         const WIKIDATA_SPARQL_URL = 'https://query.wikidata.org/sparql';
         const MAX_POIS_TO_DISPLAY = 6;
@@ -190,8 +183,8 @@
 
         // Calculate distance between two lat/lon points using Haversine formula
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371e3; // Earth's radius in meters
-            const φ1 = lat1 * Math.PI / 180; // φ, λ in radians
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
             const φ2 = lat2 * Math.PI / 180;
             const Δφ = (lat2 - lat1) * Math.PI / 180;
             const Δλ = (lon2 - lon1) * Math.PI / 180;
@@ -201,48 +194,46 @@
                       Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-            return R * c; // Distance in meters
+            return R * c;
         }
 
-        // Format distance in meters into a user-friendly string (miles/km or feet/m)
+        // Format distance into a user-friendly string
         function formatDistance(distanceMeters) {
-            if (isNaN(distanceMeters)) return ""; // Handle cases where distance couldn't be calculated
+            if (isNaN(distanceMeters)) return "";
 
             const metersToFeet = 3.28084;
             const metersToMiles = 0.000621371;
 
-            if (distanceMeters < 1000) { // Less than 1km, use feet and meters
+            if (distanceMeters < 1000) {
                 const feet = Math.round(distanceMeters * metersToFeet);
                 const meters = Math.round(distanceMeters);
                 return `approx. ${feet} ft (${meters} m)`;
-            } else { // 1km or more, use miles and kilometers
+            } else {
                 const miles = (distanceMeters * metersToMiles).toFixed(1);
                 const kilometers = (distanceMeters / 1000).toFixed(1);
                 return `approx. ${miles} mi (${kilometers} km)`;
             }
         }
 
-        // Generate appropriate Google Maps URL based on basic OS detection
+        // Generate a Google Maps URL based on platform
         function generateMapLink(poiLat, poiLon, poiName) {
-            let mapUrl = `https://www.google.com/maps/search/?api=1&query=${poiLat},${poiLon}`; // Web fallback
+            let mapUrl = `https://www.google.com/maps/search/?api=1&query=${poiLat},${poiLon}`;
             const encodedName = encodeURIComponent(poiName);
 
             try {
-                // Use UserAgentData if available (more modern)
                 if (navigator.userAgentData) {
                     const platform = navigator.userAgentData.platform.toLowerCase();
                     if (platform.includes("android")) {
                         mapUrl = `geo:${poiLat},${poiLon}?q=${poiLat},${poiLon}(${encodedName})`;
-                    } else if (platform.includes("ios") || platform.includes("ipad") || platform.includes("iphone") || platform.includes("ipod") || (platform.includes("mac") && navigator.maxTouchPoints > 1)) { // Check for touch capability on Mac as proxy for potential iOS app support
-                         mapUrl = `comgooglemaps://?q=${poiLat},${poiLon}&zoom=15`; // Simple query
+                    } else if (platform.includes("ios") || platform.includes("ipad") || platform.includes("iphone") || platform.includes("ipod") || (platform.includes("mac") && navigator.maxTouchPoints > 1)) {
+                         mapUrl = `comgooglemaps://?q=${poiLat},${poiLon}&zoom=15`;
                     }
                 } else {
-                    // Fallback to UserAgent string sniffing (less reliable)
                     const userAgent = navigator.userAgent.toLowerCase();
-                     if (/android/i.test(userAgent)) {
-                         mapUrl = `geo:${poiLat},${poiLon}?q=${poiLat},${poiLon}(${encodedName})`;
+                    if (/android/i.test(userAgent)) {
+                        mapUrl = `geo:${poiLat},${poiLon}?q=${poiLat},${poiLon}(${encodedName})`;
                     } else if (/iphone|ipad|ipod/i.test(userAgent)) {
-                         mapUrl = `comgooglemaps://?q=${poiLat},${poiLon}&zoom=15`;
+                        mapUrl = `comgooglemaps://?q=${poiLat},${poiLon}&zoom=15`;
                     }
                 }
             } catch (e) {
@@ -251,10 +242,9 @@
             return mapUrl;
         }
 
-
         // --- Core Logic Functions ---
 
-        // 1. Get User Location
+        // 1. Get User Location and update location description
         function getUserLocation() {
             return new Promise((resolve, reject) => {
                 if (!navigator.geolocation) {
@@ -267,10 +257,11 @@
                     (position) => {
                         statusElement.textContent = 'Location acquired.';
                         statusElement.classList.remove('loading');
-                        userCoords = { // Store globally
+                        userCoords = {
                             latitude: position.coords.latitude,
                             longitude: position.coords.longitude
                         };
+                        locationInfoElement.textContent = `Find Points of Interest (POI) near ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
                         resolve(userCoords);
                     },
                     (error) => {
@@ -288,13 +279,11 @@
             });
         }
 
-        // 2. Fetch Nearby POIs from OpenStreetMap (Overpass API)
+        // 2. Fetch Nearby POIs from Overpass API
         async function fetchNearbyPOIs(latitude, longitude) {
             statusElement.textContent = 'Finding nearby places...';
             statusElement.classList.add('loading');
 
-            // Updated query to request coordinates explicitly using `out center;`
-            // Increased limit slightly to get more candidates for distance sorting
             const query = `
                 [out:json][timeout:25];
                 (
@@ -319,10 +308,9 @@
                 statusElement.textContent = 'Processing places...';
 
                 const pois = data.elements
-                    .filter(el => el.tags && el.tags.name && (el.lat || el.center?.lat)) // Must have name and coordinates
+                    .filter(el => el.tags && el.tags.name && (el.lat || el.center?.lat))
                     .map(el => {
                         const coords = el.type === 'node' ? { lat: el.lat, lon: el.lon } : { lat: el.center.lat, lon: el.center.lon };
-                        // Calculate distance immediately if userCoords are available
                         const distance = userCoords ? calculateDistance(userCoords.latitude, userCoords.longitude, coords.lat, coords.lon) : null;
                         return {
                             id: el.id,
@@ -330,10 +318,9 @@
                             wikidataId: el.tags.wikidata,
                             latitude: coords.lat,
                             longitude: coords.lon,
-                            distance: distance // Store distance in meters
+                            distance: distance
                         };
                     })
-                    // Deduplicate based on name AND wikidataId (better than just name)
                     .filter((poi, index, self) =>
                         index === self.findIndex((p) => p.name === poi.name && p.wikidataId === poi.wikidataId)
                     );
@@ -347,11 +334,10 @@
             }
         }
 
-        // 3. Fetch Details (Description, Image, Wikipedia URL) from Wikidata
+        // 3. Fetch Wikidata details for a POI
         async function fetchWikidataDetails(wikidataId) {
             if (!wikidataId) return null;
 
-            // Updated SPARQL query to include Wikipedia link (sitelink)
             const sparqlQuery = `
                 SELECT ?description ?image ?wikipediaUrl WHERE {
                   BIND(wd:${wikidataId} AS ?item)
@@ -380,7 +366,7 @@
                     return {
                         description: binding.description?.value,
                         imageUrl: binding.image?.value,
-                        wikipediaUrl: binding.wikipediaUrl?.value // Extract Wikipedia URL
+                        wikipediaUrl: binding.wikipediaUrl?.value
                     };
                 }
                 return null;
@@ -393,75 +379,67 @@
 
         // 4. Display POIs in the Grid
         function displayPOIs(pois) {
-            gridElement.innerHTML = ''; // Clear previous results
+            gridElement.innerHTML = '';
 
             if (!pois || pois.length === 0) {
                 statusElement.textContent = 'No interesting places found nearby with details.';
                 statusElement.classList.remove('loading');
-                statusElement.style.display = 'block'; // Ensure status is visible
+                statusElement.style.display = 'block';
                 return;
             }
 
-            statusElement.style.display = 'none'; // Hide status when showing results
+            statusElement.style.display = 'none';
 
             pois.forEach(poi => {
                 const tile = document.createElement('div');
                 tile.className = 'poi-tile';
 
-                // Image
+                // Image (centered)
                 const image = document.createElement('img');
-                 if (poi.details?.imageUrl) {
-                     image.src = poi.details.imageUrl;
-                     image.alt = `Image of ${poi.name}`;
-                     // Basic error handling for broken images
-                     image.onerror = () => image.classList.add('no-image');
-                 } else {
-                      image.classList.add('no-image'); // Hide if no URL initially
-                 }
-                 tile.appendChild(image);
+                if (poi.details?.imageUrl) {
+                    image.src = poi.details.imageUrl;
+                    image.alt = `Image of ${poi.name}`;
+                    image.onerror = () => image.classList.add('no-image');
+                    tile.appendChild(image);
+                } else {
+                    image.classList.add('no-image');
+                }
 
-                // Title (potentially linked to Wikipedia)
+                // Title (with optional Wikipedia link)
                 const nameHeader = document.createElement('h3');
                 if (poi.details?.wikipediaUrl) {
                     const wikiLink = document.createElement('a');
                     wikiLink.href = poi.details.wikipediaUrl;
                     wikiLink.textContent = poi.name;
-                    wikiLink.target = "_blank"; // Open in new tab
+                    wikiLink.target = "_blank";
                     wikiLink.rel = "noopener noreferrer";
                     nameHeader.appendChild(wikiLink);
                 } else {
-                    nameHeader.textContent = poi.name; // Display name without link
+                    nameHeader.textContent = poi.name;
                 }
                 tile.appendChild(nameHeader);
 
-                // Distance
-                const distanceElement = document.createElement('div');
-                distanceElement.className = 'poi-distance';
-                distanceElement.textContent = formatDistance(poi.distance); // Format the distance
-                tile.appendChild(distanceElement);
+                // Distance as a hyperlink to Google Maps
+                if (poi.latitude && poi.longitude) {
+                    const distanceLink = document.createElement('a');
+                    distanceLink.className = 'poi-distance';
+                    distanceLink.href = generateMapLink(poi.latitude, poi.longitude, poi.name);
+                    distanceLink.textContent = formatDistance(poi.distance);
+                    distanceLink.target = "_blank";
+                    distanceLink.rel = "noopener noreferrer";
+                    tile.appendChild(distanceLink);
+                }
 
                 // Description
                 const description = document.createElement('p');
-                description.className = 'poi-description'; // Add class for styling
-                 if (poi.details?.description) {
-                     description.textContent = poi.details.description;
-                 } else {
-                     description.textContent = 'No description available.';
-                     description.classList.add('no-description');
-                 }
-                 tile.appendChild(description);
-
-                // Google Maps Link
-                if (poi.latitude && poi.longitude) {
-                    const mapLink = document.createElement('a');
-                    mapLink.className = 'poi-map-link';
-                    mapLink.href = generateMapLink(poi.latitude, poi.longitude, poi.name);
-                    mapLink.textContent = 'Open in Google Maps';
-                    // Note: target="_blank" might not be needed for app URLs but doesn't hurt web fallback
-                    mapLink.target = "_blank";
-                    mapLink.rel = "noopener noreferrer";
-                    tile.appendChild(mapLink);
+                description.className = 'poi-description';
+                if (poi.details?.description) {
+                    description.textContent = poi.details.description;
+                } else {
+                    description.textContent = 'No description available.';
+                    description.classList.add('no-description');
                 }
+                tile.appendChild(description);
 
                 gridElement.appendChild(tile);
             });
@@ -470,10 +448,7 @@
         // --- Main Application Flow ---
         async function initApp() {
             try {
-                // Get location first, store globally
                 const location = await getUserLocation();
-
-                // Fetch POIs (distance calculation now happens inside fetchNearbyPOIs)
                 const nearbyPOIs = await fetchNearbyPOIs(location.latitude, location.longitude);
 
                 if (nearbyPOIs.length === 0) {
@@ -485,10 +460,8 @@
                 statusElement.textContent = 'Fetching details...';
                 statusElement.classList.add('loading');
 
-                // Fetch Wikidata details concurrently
                 const detailedPOIs = await Promise.all(
                     nearbyPOIs
-                        // Process only those with Wikidata IDs first for efficiency
                         .filter(poi => poi.wikidataId)
                         .map(async (poi) => {
                             const details = await fetchWikidataDetails(poi.wikidataId);
@@ -496,15 +469,10 @@
                         })
                 );
 
-                // Combine detailed POIs with those that didn't have Wikidata IDs (if any needed)
-                // For now, we prioritize those with details. Add back others if needed.
-                // const allProcessedPOIs = [...detailedPOIs, ...nearbyPOIs.filter(p => !p.wikidataId)];
-
-                // Filter down to valid POIs (must have distance calculated) and sort them
-                 const finalPOIs = detailedPOIs
-                     .filter(poi => poi.distance !== null) // Ensure distance was calculated
-                     .sort((a, b) => a.distance - b.distance) // Sort by distance, nearest first
-                     .slice(0, MAX_POIS_TO_DISPLAY); // Take the closest ones
+                const finalPOIs = detailedPOIs
+                    .filter(poi => poi.distance !== null)
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, MAX_POIS_TO_DISPLAY);
 
                 displayPOIs(finalPOIs);
 
@@ -516,9 +484,7 @@
             }
         }
 
-        // Start the app once the DOM is loaded
         document.addEventListener('DOMContentLoaded', initApp);
-
     </script>
 
 </body>
