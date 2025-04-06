@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Explorer</title>
+    <style>
+        /* Basic Reset & Modern Font Stack */
+        :root {
+            --primary-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --muted-text: #6c757d;
+            --accent-color: #007bff;
+            --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            --border-radius: 8px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            padding: 1rem; /* Padding around the whole content */
+        }
+
+        /* App Container */
+        #app-container {
+            max-width: 1200px; /* Max width on larger screens */
+            margin: 0 auto; /* Center the container */
+        }
+
+        /* Header/Title */
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        /* Status Messages */
+        #status-message {
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 1.1rem;
+            color: var(--muted-text);
+            min-height: 50px; /* Prevent layout shift */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Loading Indicator (Simple) */
+        .loading::after {
+            content: '...';
+            display: inline-block;
+            animation: loading-dots 1.4s infinite;
+            animation-timing-function: ease-in-out;
+        }
+        @keyframes loading-dots {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+
+        /* POI Grid Layout */
+        #poi-grid {
+            display: grid;
+            /* Responsive grid: Fits as many columns >= 280px as possible */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem; /* Space between tiles */
+        }
+
+        /* Individual POI Tile Styling */
+        .poi-tile {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .poi-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        .poi-tile img {
+            width: 100%; /* Make image fill tile width */
+            height: 180px; /* Fixed height for consistency */
+            object-fit: cover; /* Cover area, cropping if needed */
+            border-radius: var(--border-radius) var(--border-radius) 0 0; /* Rounded top corners */
+            margin: -1rem -1rem 1rem -1rem; /* Extend to edges */
+            background-color: #eee; /* Placeholder color */
+            border-bottom: 1px solid #eee;
+        }
+
+         .poi-tile .no-image {
+             display: none; /* Hide image element if no src */
+         }
+
+        .poi-tile h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .poi-tile p {
+            font-size: 0.95rem;
+            color: var(--muted-text);
+            flex-grow: 1; /* Make description take available space */
+            overflow: hidden; /* Hide overflow */
+             /* Simple way to limit lines, adjust as needed */
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+        }
+
+        .poi-tile .no-description {
+             font-style: italic;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <h1>Nearby Explorer</h1>
+        <div id="status-message">Initializing...</div>
+        <div id="poi-grid">
+            </div>
+    </div>
+
+    <script>
+        const statusElement = document.getElementById('status-message');
+        const gridElement = document.getElementById('poi-grid');
+        const OVERPASS_API_URL = 'https://overpass-api.de/api/interpreter';
+        const WIKIDATA_SPARQL_URL = 'https://query.wikidata.org/sparql';
+        const MAX_POIS_TO_DISPLAY = 6;
+        const SEARCH_RADIUS_METERS = 1000; // Search within 1km
+
+        // 1. Get User Location
+        function getUserLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation is not supported by your browser.'));
+                    return;
+                }
+                statusElement.textContent = 'Requesting location permission...';
+                statusElement.classList.add('loading');
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        statusElement.textContent = 'Location acquired.';
+                        statusElement.classList.remove('loading');
+                        resolve({
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        });
+                    },
+                    (error) => {
+                        let message = 'Could not get location. ';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED: message += "Permission denied."; break;
+                            case error.POSITION_UNAVAILABLE: message += "Location information is unavailable."; break;
+                            case error.TIMEOUT: message += "The request to get user location timed out."; break;
+                            default: message += "An unknown error occurred."; break;
+                        }
+                        reject(new Error(message));
+                    },
+                    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 } // Options
+                );
+            });
+        }
+
+        // 2. Fetch Nearby POIs from OpenStreetMap (Overpass API)
+        async function fetchNearbyPOIs(latitude, longitude) {
+            statusElement.textContent = 'Finding nearby places...';
+            statusElement.classList.add('loading');
+
+            // Overpass QL query to find named points of interest (nodes, ways, relations)
+            // Focusing on common types likely to have descriptions. Add/remove as needed.
+            // Requests name and wikidata tags specifically. Limits results.
+            const query = `
+                [out:json][timeout:25];
+                (
+                  nwr["name"]["tourism"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["historic"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["leisure"="park"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["amenity"="place_of_worship"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["natural"="peak"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                );
+                out body center ${MAX_POIS_TO_DISPLAY * 3}; >; out skel qt;
+            `;
+            // Note: Increased limit (*3) to fetch more candidates than needed
+
+            try {
+                const response = await fetch(OVERPASS_API_URL, {
+                    method: 'POST',
+                    body: 'data=' + encodeURIComponent(query),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Overpass API error: ${response.status} ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                statusElement.textContent = 'Processing places...';
+
+                // Extract relevant data: name and wikidata ID (if available)
+                const pois = data.elements
+                    .filter(el => el.tags && el.tags.name) // Must have a name
+                    .map(el => ({
+                        id: el.id, // OSM ID
+                        name: el.tags.name,
+                        wikidataId: el.tags.wikidata // Might be undefined
+                    }))
+                    // Basic deduplication based on name (imperfect but helps)
+                    .filter((poi, index, self) =>
+                        index === self.findIndex((p) => p.name === poi.name)
+                    );
+
+                console.log(`Found ${pois.length} potential POIs from Overpass.`);
+                return pois;
+
+            } catch (error) {
+                console.error('Error fetching from Overpass:', error);
+                throw new Error('Failed to fetch nearby places from OpenStreetMap.');
+            }
+        }
+
+
+        // 3. Fetch Details (Description, Image) from Wikidata
+        async function fetchWikidataDetails(wikidataId) {
+            if (!wikidataId) return null; // Skip if no Wikidata ID
+
+            // SPARQL query to get English description and image
+            const sparqlQuery = `
+                SELECT ?description ?image WHERE {
+                  BIND(wd:${wikidataId} AS ?item)
+                  OPTIONAL { ?item schema:description ?description FILTER(LANG(?description) = "en"). }
+                  OPTIONAL { ?item wdt:P18 ?image . }
+                } LIMIT 1
+            `;
+
+            const url = `${WIKIDATA_SPARQL_URL}?query=${encodeURIComponent(sparqlQuery)}&format=json`;
+
+            try {
+                const response = await fetch(url, {
+                    headers: { 'Accept': 'application/sparql-results+json' }
+                });
+                if (!response.ok) {
+                    console.warn(`Wikidata query failed for ${wikidataId}: ${response.status}`);
+                    return null; // Don't let one failure stop others
+                }
+                const data = await response.json();
+
+                if (data.results.bindings.length > 0) {
+                    const binding = data.results.bindings[0];
+                    return {
+                        description: binding.description?.value,
+                        imageUrl: binding.image?.value
+                    };
+                }
+                return null; // No results found
+
+            } catch (error) {
+                console.warn(`Error fetching Wikidata details for ${wikidataId}:`, error);
+                return null; // Gracefully handle fetch errors
+            }
+        }
+
+        // 4. Display POIs in the Grid
+        function displayPOIs(pois) {
+            gridElement.innerHTML = ''; // Clear previous results or loading states
+
+            if (!pois || pois.length === 0) {
+                statusElement.textContent = 'No interesting places found nearby with details.';
+                statusElement.classList.remove('loading');
+                return;
+            }
+
+             statusElement.style.display = 'none'; // Hide status when showing results
+
+
+            // Take only the specified number of POIs
+            const poisToDisplay = pois.slice(0, MAX_POIS_TO_DISPLAY);
+
+            poisToDisplay.forEach(poi => {
+                const tile = document.createElement('div');
+                tile.className = 'poi-tile';
+
+                const image = document.createElement('img');
+                 if (poi.details?.imageUrl) {
+                     image.src = poi.details.imageUrl;
+                     image.alt = `Image of ${poi.name}`;
+                     image.onerror = () => image.classList.add('no-image'); // Hide if image fails to load
+                 } else {
+                      image.classList.add('no-image'); // Hide if no URL
+                 }
+
+                const name = document.createElement('h3');
+                name.textContent = poi.name;
+
+                const description = document.createElement('p');
+                 if (poi.details?.description) {
+                     description.textContent = poi.details.description;
+                 } else {
+                     description.textContent = 'No description available.';
+                     description.classList.add('no-description');
+                 }
+
+                tile.appendChild(image);
+                tile.appendChild(name);
+                tile.appendChild(description);
+                gridElement.appendChild(tile);
+            });
+        }
+
+        // --- Main Application Flow ---
+        async function initApp() {
+            try {
+                const location = await getUserLocation();
+                const nearbyPOIs = await fetchNearbyPOIs(location.latitude, location.longitude);
+
+                if (nearbyPOIs.length === 0) {
+                    statusElement.textContent = 'No places found nearby via OpenStreetMap.';
+                     statusElement.classList.remove('loading');
+                    return;
+                }
+
+                statusElement.textContent = 'Fetching details...';
+                statusElement.classList.add('loading');
+
+                // Fetch Wikidata details for POIs that have an ID
+                const detailedPOIs = await Promise.all(
+                    nearbyPOIs
+                        // Prioritize those with Wikidata IDs
+                        .sort((a, b) => (b.wikidataId ? 1 : 0) - (a.wikidataId ? 1 : 0))
+                        // Limit how many Wikidata requests we make to avoid overwhelming the API
+                        .slice(0, MAX_POIS_TO_DISPLAY * 2)
+                        .map(async (poi) => {
+                            const details = await fetchWikidataDetails(poi.wikidataId);
+                            return { ...poi, details }; // Combine original POI info with fetched details
+                        })
+                );
+
+                 // Filter down to the best results (have a name and preferably a description or image)
+                 const finalPOIs = detailedPOIs
+                     .filter(poi => poi.name && (poi.details?.description || poi.details?.imageUrl))
+                     .slice(0, MAX_POIS_TO_DISPLAY);
+
+
+                displayPOIs(finalPOIs);
+
+            } catch (error) {
+                console.error('App initialization failed:', error);
+                statusElement.textContent = `Error: ${error.message}`;
+                 statusElement.classList.remove('loading');
+                gridElement.innerHTML = ''; // Clear grid on error
+            }
+        }
+
+        // Start the app once the DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+
+</body>
+</html>
