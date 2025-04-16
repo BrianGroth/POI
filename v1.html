@@ -1,0 +1,490 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Explorer</title>
+    <style>
+        /* Basic Reset & Modern Font Stack */
+        :root {
+            --primary-bg: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --muted-text: #6c757d;
+            --accent-color: #007bff; /* Blue */
+            --link-color: #0056b3; /* Darker blue for links */
+            --card-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            --border-radius: 8px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.6;
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            padding: 1rem;
+        }
+
+        /* App Container */
+        #app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header/Title */
+        h1 {
+            text-align: center;
+            color: var(--accent-color);
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Location Description Under Title */
+        #location-info {
+            text-align: center;
+            color: var(--muted-text);
+            margin-bottom: 1.5rem;
+        }
+
+        /* Status Messages */
+        #status-message {
+            text-align: center;
+            padding: 2rem 1rem;
+            font-size: 1.1rem;
+            color: var(--muted-text);
+            min-height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Loading Indicator */
+        .loading::after {
+            content: '...';
+            display: inline-block;
+            animation: loading-dots 1.4s infinite;
+            animation-timing-function: ease-in-out;
+        }
+        @keyframes loading-dots {
+            0%, 100% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        /* POI Grid Layout */
+        #poi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Individual POI Tile Styling with Additional Color Variation */
+        .poi-tile {
+            background: linear-gradient(135deg, #ffffff, #f8fbff);
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            border: 1px solid #dee2e6;
+        }
+
+        .poi-tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Centered Image Styling */
+        .poi-tile img {
+            display: block;
+            max-width: 100%;
+            max-height: 180px;
+            object-fit: cover;
+            border-radius: var(--border-radius);
+            margin: 0 auto 1rem auto;
+            background-color: #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .poi-tile .no-image {
+            display: none;
+        }
+
+        /* Title Styling with Underlined Hyperlinks */
+        .poi-tile h3 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--accent-color);
+            margin-bottom: 0.25rem;
+        }
+        .poi-tile h3 a {
+            text-decoration: underline;
+            color: inherit;
+        }
+        .poi-tile h3 a:hover {
+            color: var(--link-color);
+        }
+
+        /* Distance Styling as an Underlined Hyperlink */
+        .poi-distance {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--muted-text);
+            margin-bottom: 0.5rem;
+            text-decoration: underline;
+        }
+
+        /* Description Styling */
+        .poi-tile p.poi-description {
+            font-size: 0.95rem;
+            color: var(--text-color);
+            flex-grow: 1;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+        }
+
+        .poi-tile p.no-description {
+            font-style: italic;
+            color: var(--muted-text);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app-container">
+        <h1>Nearby Explorer</h1>
+        <p id="location-info">Find Points of Interest (POI) near </p>
+        <div id="status-message">Initializing...</div>
+        <div id="poi-grid"></div>
+    </div>
+
+    <script>
+        const statusElement = document.getElementById('status-message');
+        const gridElement = document.getElementById('poi-grid');
+        const locationInfoElement = document.getElementById('location-info');
+        const OVERPASS_API_URL = 'https://overpass-api.de/api/interpreter';
+        const WIKIDATA_SPARQL_URL = 'https://query.wikidata.org/sparql';
+        const MAX_POIS_TO_DISPLAY = 6;
+        const SEARCH_RADIUS_METERS = 1000; // Search within 1km
+
+        let userCoords = null; // Store user coordinates globally
+
+        // --- Helper Functions ---
+
+        // Calculate distance between two lat/lon points using Haversine formula
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3;
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c;
+        }
+
+        // Format distance into a user-friendly string
+        function formatDistance(distanceMeters) {
+            if (isNaN(distanceMeters)) return "";
+
+            const metersToFeet = 3.28084;
+            const metersToMiles = 0.000621371;
+
+            if (distanceMeters < 1000) {
+                const feet = Math.round(distanceMeters * metersToFeet);
+                const meters = Math.round(distanceMeters);
+                return `approx. ${feet} ft (${meters} m)`;
+            } else {
+                const miles = (distanceMeters * metersToMiles).toFixed(1);
+                const kilometers = (distanceMeters / 1000).toFixed(1);
+                return `approx. ${miles} mi (${kilometers} km)`;
+            }
+        }
+
+        // Generate a Google Maps URL based on platform
+        function generateMapLink(poiLat, poiLon, poiName) {
+            let mapUrl = `https://www.google.com/maps/search/?api=1&query=${poiLat},${poiLon}`;
+            const encodedName = encodeURIComponent(poiName);
+
+            try {
+                if (navigator.userAgentData) {
+                    const platform = navigator.userAgentData.platform.toLowerCase();
+                    if (platform.includes("android")) {
+                        mapUrl = `geo:${poiLat},${poiLon}?q=${poiLat},${poiLon}(${encodedName})`;
+                    } else if (platform.includes("ios") || platform.includes("ipad") || platform.includes("iphone") || platform.includes("ipod") || (platform.includes("mac") && navigator.maxTouchPoints > 1)) {
+                         mapUrl = `comgooglemaps://?q=${poiLat},${poiLon}&zoom=15`;
+                    }
+                } else {
+                    const userAgent = navigator.userAgent.toLowerCase();
+                    if (/android/i.test(userAgent)) {
+                        mapUrl = `geo:${poiLat},${poiLon}?q=${poiLat},${poiLon}(${encodedName})`;
+                    } else if (/iphone|ipad|ipod/i.test(userAgent)) {
+                        mapUrl = `comgooglemaps://?q=${poiLat},${poiLon}&zoom=15`;
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not detect OS for map link generation, using web fallback.", e);
+            }
+            return mapUrl;
+        }
+
+        // --- Core Logic Functions ---
+
+        // 1. Get User Location and update location description
+        function getUserLocation() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject(new Error('Geolocation is not supported by your browser.'));
+                    return;
+                }
+                statusElement.textContent = 'Requesting location permission...';
+                statusElement.classList.add('loading');
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        statusElement.textContent = 'Location acquired.';
+                        statusElement.classList.remove('loading');
+                        userCoords = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        locationInfoElement.textContent = `Find Points of Interest (POI) near Latitude: ${position.coords.latitude.toFixed(4)}, Longitude: ${position.coords.longitude.toFixed(4)}`;
+                        resolve(userCoords);
+                    },
+                    (error) => {
+                        let message = 'Could not get location. ';
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED: message += "Permission denied."; break;
+                            case error.POSITION_UNAVAILABLE: message += "Location information is unavailable."; break;
+                            case error.TIMEOUT: message += "The request to get user location timed out."; break;
+                            default: message += "An unknown error occurred."; break;
+                        }
+                        reject(new Error(message));
+                    },
+                    { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
+                );
+            });
+        }
+
+        // 2. Fetch Nearby POIs from Overpass API
+        async function fetchNearbyPOIs(latitude, longitude) {
+            statusElement.textContent = 'Finding nearby places...';
+            statusElement.classList.add('loading');
+
+            const query = `
+                [out:json][timeout:25];
+                (
+                  nwr["name"]["tourism"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["historic"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["leisure"="park"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["amenity"="place_of_worship"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                  nwr["name"]["natural"="peak"](around:${SEARCH_RADIUS_METERS},${latitude},${longitude});
+                );
+                out center ${MAX_POIS_TO_DISPLAY * 4}; >; out skel qt;
+            `;
+
+            try {
+                const response = await fetch(OVERPASS_API_URL, {
+                    method: 'POST',
+                    body: 'data=' + encodeURIComponent(query),
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                });
+
+                if (!response.ok) throw new Error(`Overpass API error: ${response.status}`);
+                const data = await response.json();
+                statusElement.textContent = 'Processing places...';
+
+                const pois = data.elements
+                    .filter(el => el.tags && el.tags.name && (el.lat || el.center?.lat))
+                    .map(el => {
+                        const coords = el.type === 'node' ? { lat: el.lat, lon: el.lon } : { lat: el.center.lat, lon: el.center.lon };
+                        const distance = userCoords ? calculateDistance(userCoords.latitude, userCoords.longitude, coords.lat, coords.lon) : null;
+                        return {
+                            id: el.id,
+                            name: el.tags.name,
+                            wikidataId: el.tags.wikidata,
+                            latitude: coords.lat,
+                            longitude: coords.lon,
+                            distance: distance
+                        };
+                    })
+                    .filter((poi, index, self) =>
+                        index === self.findIndex((p) => p.name === poi.name && p.wikidataId === poi.wikidataId)
+                    );
+
+                console.log(`Found ${pois.length} potential POIs with coordinates from Overpass.`);
+                return pois;
+
+            } catch (error) {
+                console.error('Error fetching from Overpass:', error);
+                throw new Error('Failed to fetch nearby places from OpenStreetMap.');
+            }
+        }
+
+        // 3. Fetch Wikidata details for a POI
+        async function fetchWikidataDetails(wikidataId) {
+            if (!wikidataId) return null;
+
+            const sparqlQuery = `
+                SELECT ?description ?image ?wikipediaUrl WHERE {
+                  BIND(wd:${wikidataId} AS ?item)
+                  OPTIONAL { ?item schema:description ?description FILTER(LANG(?description) = "en"). }
+                  OPTIONAL { ?item wdt:P18 ?image . }
+                  OPTIONAL {
+                    ?wikipediaUrl schema:about ?item ;
+                                  schema:isPartOf <https://en.wikipedia.org/> ;
+                                  schema:inLanguage "en" .
+                  }
+                } LIMIT 1
+            `;
+
+            const url = `${WIKIDATA_SPARQL_URL}?query=${encodeURIComponent(sparqlQuery)}&format=json`;
+
+            try {
+                const response = await fetch(url, { headers: { 'Accept': 'application/sparql-results+json' } });
+                if (!response.ok) {
+                    console.warn(`Wikidata query failed for ${wikidataId}: ${response.status}`);
+                    return null;
+                }
+                const data = await response.json();
+
+                if (data.results.bindings.length > 0) {
+                    const binding = data.results.bindings[0];
+                    return {
+                        description: binding.description?.value,
+                        imageUrl: binding.image?.value,
+                        wikipediaUrl: binding.wikipediaUrl?.value
+                    };
+                }
+                return null;
+
+            } catch (error) {
+                console.warn(`Error fetching Wikidata details for ${wikidataId}:`, error);
+                return null;
+            }
+        }
+
+        // 4. Display POIs in the Grid
+        function displayPOIs(pois) {
+            gridElement.innerHTML = '';
+
+            if (!pois || pois.length === 0) {
+                statusElement.textContent = 'No interesting places found nearby with details.';
+                statusElement.classList.remove('loading');
+                statusElement.style.display = 'block';
+                return;
+            }
+
+            statusElement.style.display = 'none';
+
+            pois.forEach(poi => {
+                const tile = document.createElement('div');
+                tile.className = 'poi-tile';
+
+                // Image (centered)
+                const image = document.createElement('img');
+                if (poi.details?.imageUrl) {
+                    image.src = poi.details.imageUrl;
+                    image.alt = `Image of ${poi.name}`;
+                    image.onerror = () => image.classList.add('no-image');
+                    tile.appendChild(image);
+                } else {
+                    image.classList.add('no-image');
+                }
+
+                // Title (with optional Wikipedia link)
+                const nameHeader = document.createElement('h3');
+                if (poi.details?.wikipediaUrl) {
+                    const wikiLink = document.createElement('a');
+                    wikiLink.href = poi.details.wikipediaUrl;
+                    wikiLink.textContent = poi.name;
+                    wikiLink.target = "_blank";
+                    wikiLink.rel = "noopener noreferrer";
+                    nameHeader.appendChild(wikiLink);
+                } else {
+                    nameHeader.textContent = poi.name;
+                }
+                tile.appendChild(nameHeader);
+
+                // Distance as a hyperlink to Google Maps (underlined)
+                if (poi.latitude && poi.longitude) {
+                    const distanceLink = document.createElement('a');
+                    distanceLink.className = 'poi-distance';
+                    distanceLink.href = generateMapLink(poi.latitude, poi.longitude, poi.name);
+                    distanceLink.textContent = formatDistance(poi.distance);
+                    distanceLink.target = "_blank";
+                    distanceLink.rel = "noopener noreferrer";
+                    tile.appendChild(distanceLink);
+                }
+
+                // Description
+                const description = document.createElement('p');
+                description.className = 'poi-description';
+                if (poi.details?.description) {
+                    description.textContent = poi.details.description;
+                } else {
+                    description.textContent = 'No description available.';
+                    description.classList.add('no-description');
+                }
+                tile.appendChild(description);
+
+                gridElement.appendChild(tile);
+            });
+        }
+
+        // --- Main Application Flow ---
+        async function initApp() {
+            try {
+                const location = await getUserLocation();
+                const nearbyPOIs = await fetchNearbyPOIs(location.latitude, location.longitude);
+
+                if (nearbyPOIs.length === 0) {
+                    statusElement.textContent = 'No places found nearby via OpenStreetMap.';
+                    statusElement.classList.remove('loading');
+                    return;
+                }
+
+                statusElement.textContent = 'Fetching details...';
+                statusElement.classList.add('loading');
+
+                const detailedPOIs = await Promise.all(
+                    nearbyPOIs
+                        .filter(poi => poi.wikidataId)
+                        .map(async (poi) => {
+                            const details = await fetchWikidataDetails(poi.wikidataId);
+                            return { ...poi, details };
+                        })
+                );
+
+                const finalPOIs = detailedPOIs
+                    .filter(poi => poi.distance !== null)
+                    .sort((a, b) => a.distance - b.distance)
+                    .slice(0, MAX_POIS_TO_DISPLAY);
+
+                displayPOIs(finalPOIs);
+
+            } catch (error) {
+                console.error('App initialization failed:', error);
+                statusElement.textContent = `Error: ${error.message}`;
+                statusElement.classList.remove('loading');
+                gridElement.innerHTML = '';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+
+</body>
+</html>
