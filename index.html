@@ -59,11 +59,11 @@
         .app-header {
             background-color: var(--accent-color);
             color: white;
-            padding: 1.5rem 1rem 3.5rem 1rem;
+            padding: 1.5rem 1rem 2rem 1rem;
             position: relative;
             border-radius: 0 0 24px 24px;
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 0.8rem;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
@@ -85,6 +85,7 @@
             margin-top: 0.5rem;
             font-size: 0.9rem;
             opacity: 0.9;
+            margin-bottom: 0.2rem;
         }
 
         /* App Container with Overlap */
@@ -96,13 +97,46 @@
             z-index: 10;
         }
 
-        /* Control Panel */
+        /* Collapsible Container */
+        .collapsible-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .collapsible-toggle {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 0.8rem 1.2rem;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all var(--transition-speed);
+        }
+
+        .collapsible-toggle:hover {
+            background-color: var(--link-color);
+        }
+
+        .collapsible-toggle i {
+            transition: transform var(--transition-speed);
+        }
+
+        .collapsible-toggle[aria-expanded="true"] i {
+            transform: rotate(0deg);
+        }
+
+        .collapsible-toggle[aria-expanded="false"] i {
+            transform: rotate(-180deg);
+        }
+
         .control-panel {
             background-color: var(--card-bg);
             border-radius: var(--border-radius);
             box-shadow: var(--card-shadow);
             padding: 0.8rem; /* Reduce padding */
-            margin-bottom: 1.5rem;
             border: 1px solid var(--border-color);
             display: flex;
             flex-wrap: wrap;
@@ -732,38 +766,43 @@
     </header>
 
     <div id="app-container">
-        <!-- Control Panel -->
-        <div class="control-panel">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="search-input" placeholder="Search places..." aria-label="Search places">
-            </div>
-            
-            <div class="filter-controls">
-                <button class="filter-btn active" data-category="all"><i class="fas fa-globe"></i> All</button>
-                <button class="filter-btn" data-category="historic"><i class="fas fa-landmark"></i> Historic</button>
-                <button class="filter-btn" data-category="tourism"><i class="fas fa-camera"></i> Tourism</button>
-                <button class="filter-btn" data-category="natural"><i class="fas fa-tree"></i> Nature</button>
-                <button class="filter-btn" data-category="leisure"><i class="fas fa-umbrella-beach"></i> Leisure</button>
-                <button class="filter-btn" data-category="worship"><i class="fas fa-place-of-worship"></i> Religious</button>
-                <button class="filter-btn" id="favorites-filter"><i class="fas fa-heart"></i> Favorites</button>
-            </div>
-            
-            <div id="radius-container">
-                <label for="radius-slider">Search radius:</label>
-                <div class="slider-container">
-                    <input type="range" id="radius-slider" min="500" max="5000" step="500" value="1000">
-                    <span id="radius-value">1 km</span>
+        <!-- Collapsible Container -->
+        <div class="collapsible-container">
+            <button class="collapsible-toggle" aria-expanded="true">
+                <i class="fas fa-chevron-up"></i> Filters
+            </button>
+            <div class="control-panel">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search places..." aria-label="Search places">
                 </div>
-            </div>
-            
-            <div class="view-toggles">
-                <button class="view-toggle active" id="grid-toggle" aria-label="Grid View">
-                    <i class="fas fa-th-large"></i>
-                </button>
-                <button class="view-toggle" id="map-toggle" aria-label="Map View">
-                    <i class="fas fa-map"></i>
-                </button>
+                
+                <div class="filter-controls">
+                    <button class="filter-btn active" data-category="all"><i class="fas fa-globe"></i> All</button>
+                    <button class="filter-btn" data-category="historic"><i class="fas fa-landmark"></i> Historic</button>
+                    <button class="filter-btn" data-category="tourism"><i class="fas fa-camera"></i> Tourism</button>
+                    <button class="filter-btn" data-category="natural"><i class="fas fa-tree"></i> Nature</button>
+                    <button class="filter-btn" data-category="leisure"><i class="fas fa-umbrella-beach"></i> Leisure</button>
+                    <button class="filter-btn" data-category="worship"><i class="fas fa-place-of-worship"></i> Religious</button>
+                    <button class="filter-btn" id="favorites-filter"><i class="fas fa-heart"></i> Favorites</button>
+                </div>
+                
+                <div id="radius-container">
+                    <label for="radius-slider">Search radius:</label>
+                    <div class="slider-container">
+                        <input type="range" id="radius-slider" min="500" max="5000" step="500" value="1000">
+                        <span id="radius-value">1 km</span>
+                    </div>
+                </div>
+                
+                <div class="view-toggles">
+                    <button class="view-toggle active" id="grid-toggle" aria-label="Grid View">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="view-toggle" id="map-toggle" aria-label="Map View">
+                        <i class="fas fa-map"></i>
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -781,7 +820,7 @@
 
     <!-- Footer -->
     <footer>
-        <p>Nearby Explorer &copy; 2025 | Data from OpenStreetMap & Wikidata</p>
+        <p>Nearby Explorer &copy; 2025 | By Brian Groth and ChatGPT | Data from OpenStreetMap & Wikidata</p>
     </footer>
 
     <script>
