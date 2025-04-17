@@ -340,6 +340,7 @@
             transition: transform var(--transition-speed), box-shadow var(--transition-speed);
             border: 1px solid var(--border-color);
             height: 100%;
+            position: relative; /* Ensure badge is always positioned relative to tile */
         }
 
         .poi-tile:hover {
@@ -352,13 +353,7 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            padding: 0.3rem 0.8rem;
-            border-radius: 50px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-            background-color: var(--accent-color);
-            z-index: 1;
+            z-index: 2;
         }
 
         .category-historic {
@@ -767,44 +762,7 @@
 
     <div id="app-container">
         <!-- Collapsible Container -->
-        <div class="collapsible-container">
-            <button class="collapsible-toggle" aria-expanded="true">
-                <i class="fas fa-chevron-up"></i> Filters
-            </button>
-            <div class="control-panel">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-input" placeholder="Search places..." aria-label="Search places">
-                </div>
-                
-                <div class="filter-controls">
-                    <button class="filter-btn active" data-category="all"><i class="fas fa-globe"></i> All</button>
-                    <button class="filter-btn" data-category="historic"><i class="fas fa-landmark"></i> Historic</button>
-                    <button class="filter-btn" data-category="tourism"><i class="fas fa-camera"></i> Tourism</button>
-                    <button class="filter-btn" data-category="natural"><i class="fas fa-tree"></i> Nature</button>
-                    <button class="filter-btn" data-category="leisure"><i class="fas fa-umbrella-beach"></i> Leisure</button>
-                    <button class="filter-btn" data-category="worship"><i class="fas fa-place-of-worship"></i> Religious</button>
-                    <button class="filter-btn" id="favorites-filter"><i class="fas fa-heart"></i> Favorites</button>
-                </div>
-                
-                <div id="radius-container">
-                    <label for="radius-slider">Search radius:</label>
-                    <div class="slider-container">
-                        <input type="range" id="radius-slider" min="500" max="5000" step="500" value="1000">
-                        <span id="radius-value">1 km</span>
-                    </div>
-                </div>
-                
-                <div class="view-toggles">
-                    <button class="view-toggle active" id="grid-toggle" aria-label="Grid View">
-                        <i class="fas fa-th-large"></i>
-                    </button>
-                    <button class="view-toggle" id="map-toggle" aria-label="Map View">
-                        <i class="fas fa-map"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
+        <!-- Search and Filter section removed -->
 
         <!-- Main Content Area -->
         <div id="status-message"></div>
@@ -1098,20 +1056,17 @@ function renderPOIs() {
         slice.forEach(poi => {
             const tile = document.createElement('div');
             tile.className = 'poi-tile';
+            tile.style.position = 'relative'; // Ensure positioning context for badge
 
-            // Category pill
+            // Category pill (badge)
             const pill = document.createElement('div');
             pill.className = `category-pill category-${poi.category}`;
             pill.textContent = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
+            pill.style.position = 'absolute';
+            pill.style.top = '10px';
+            pill.style.right = '10px';
+            pill.style.zIndex = '2';
             tile.appendChild(pill);
-
-            // Favorite button
-            const fav = document.createElement('button');
-            fav.className = 'favorite-btn';
-            fav.innerHTML = '<i class="fas fa-heart"></i>';
-            if (favoritePOIs.includes(poi.id)) fav.classList.add('active');
-            fav.addEventListener('click', () => toggleFavorite(poi.id, fav));
-            tile.appendChild(fav);
 
             // Content
             const content = document.createElement('div');
