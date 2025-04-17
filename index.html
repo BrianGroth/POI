@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,19 +12,17 @@
             --card-bg: #ffffff;
             --text-color: #212529;
             --muted-text: #6c757d;
-            --accent-color: #4361ee; /* Vibrant blue */
+            --accent-color: #4361ee;
             --accent-color-light: #edf2ff;
-            --link-color: #3a0ca3; /* Deeper purple for links */
-            --success-color: #4cc9f0; /* Teal */
-            --warning-color: #f72585; /* Pink */
+            --link-color: #3a0ca3;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
             --card-shadow: 0 4px 8px rgba(0,0,0,0.08);
             --hover-shadow: 0 8px 16px rgba(0,0,0,0.12);
             --border-radius: 12px;
             --border-color: #e9ecef;
             --transition-speed: 0.3s;
         }
-
-        /* Dark Mode Variables */
         @media (prefers-color-scheme: dark) {
             :root {
                 --primary-bg: #121212;
@@ -37,716 +35,38 @@
                 --border-color: #343a40;
             }
         }
-
-        /* Basic Reset & Modern Font Stack */
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            background-color: var(--primary-bg);
-            color: var(--text-color);
-            padding: 0;
-            margin: 0;
-            transition: background-color var(--transition-speed);
-        }
-
-        /* Top App Bar */
-        .app-header {
-            background-color: var(--accent-color);
-            color: white;
-            padding: 1.5rem 1rem 2rem 1rem;
-            position: relative;
-            border-radius: 0 0 24px 24px;
-            text-align: center;
-            margin-bottom: 0.8rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .app-title {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .app-title i {
-            font-size: 1.5rem;
-        }
-
-        #location-info {
-            margin-top: 0.5rem;
-            font-size: 0.9rem;
-            opacity: 0.9;
-            margin-bottom: 0.2rem;
-        }
-
-        /* App Container with Overlap */
-        #app-container {
-            max-width: 1200px;
-            margin: -2.5rem auto 2rem auto;
-            padding: 0 1rem;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* Collapsible Container */
-        .collapsible-container {
-            margin-bottom: 1.5rem;
-        }
-
-        .collapsible-toggle {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 0.8rem 1.2rem;
-            font-size: 1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all var(--transition-speed);
-        }
-
-        .collapsible-toggle:hover {
-            background-color: var(--link-color);
-        }
-
-        .collapsible-toggle i {
-            transition: transform var(--transition-speed);
-        }
-
-        .collapsible-toggle[aria-expanded="true"] i {
-            transform: rotate(0deg);
-        }
-
-        .collapsible-toggle[aria-expanded="false"] i {
-            transform: rotate(-180deg);
-        }
-
-        .control-panel {
-            background-color: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            padding: 0.8rem; /* Reduce padding */
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem; /* Reduce the gap between elements */
-            align-items: center;
-            transition: all var(--transition-speed);
-        }
-
-        /* Search Box */
-        .search-box {
-            flex: 1 1 200px; /* Reduce the minimum width */
-            position: relative;
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 0.7rem 1rem 0.7rem 2.5rem;
-            border-radius: 50px;
-            border: 1px solid var(--border-color);
-            font-size: 1rem;
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            transition: all var(--transition-speed);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 0.8rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--muted-text);
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px var(--accent-color-light);
-        }
-
-        /* Filter Controls */
-        .filter-controls {
-            display: flex;
-            gap: 0.7rem;
-            flex-wrap: wrap;
-            flex: 2 1 400px;
-        }
-
-        .filter-btn {
-            padding: 0.4rem 0.8rem; /* Reduce padding */
-            background-color: var(--primary-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 50px;
-            font-size: 0.8rem; /* Reduce font size */
-            color: var(--text-color);
-            cursor: pointer;
-            transition: all var(--transition-speed);
-            display: flex;
-            align-items: center;
-            gap: 4px; /* Reduce gap between icon and text */
-        }
-
-        .filter-btn:hover {
-            background-color: var(--accent-color-light);
-        }
-
-        .filter-btn.active {
-            background-color: var(--accent-color);
-            color: white;
-            border-color: var(--accent-color);
-        }
-
-        /* Distance Slider */
-        #radius-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.3rem;
-            width: 100%;
-        }
-
-        .slider-container {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        #radius-slider {
-            flex: 1;
-            -webkit-appearance: none;
-            appearance: none;
-            height: 6px;
-            background: var(--border-color);
-            border-radius: 3px;
-        }
-
-        #radius-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--accent-color);
-            cursor: pointer;
-        }
-
-        #radius-value {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--muted-text);
-            width: 70px;
-            text-align: right;
-        }
-
-        /* View Toggles */
-        .view-toggles {
-            display: flex;
-            gap: 0.5rem;
-            margin-left: auto;
-        }
-
-        .view-toggle {
-            background-color: var(--primary-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-        }
-
-        .view-toggle:hover {
-            background-color: var(--accent-color-light);
-        }
-
-        .view-toggle.active {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        /* Status Messages */
-        #status-message {
-            text-align: center;
-            padding: 2rem 1rem;
-            font-size: 1.1rem;
-            color: var(--muted-text);
-            min-height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        /* Spinner Animation */
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(0,0,0,0.1);
-            border-radius: 50%;
-            border-top-color: var(--accent-color);
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Content Views Container */
-        .content-views {
-            position: relative;
-        }
-
-        /* POI Grid Layout */
-        #poi-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 1.5rem;
-            transition: opacity var(--transition-speed);
-        }
-
-        /* Map View */
-        #map-view {
-            height: 500px;
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--border-color);
-            display: none;
-        }
-
-        /* Individual POI Tile Styling with Color Categories */
-        .poi-tile {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--card-shadow);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
-            border: 1px solid var(--border-color);
-            height: 100%;
-            position: relative; /* Ensure badge is always positioned relative to tile */
-        }
-
-        .poi-tile:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        /* Category Pills */
-        .category-pill {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 2;
-        }
-
-        .category-historic {
-            background-color: #f72585;
-        }
-
-        .category-tourism {
-            background-color: #4361ee;
-        }
-
-        .category-natural {
-            background-color: #4cc9f0;
-        }
-
-        .category-leisure {
-            background-color: #4cc9f0;
-        }
-
-        .category-worship {
-            background-color: #7209b7;
-        }
-
-        /* Media Section with Image Slider */
-        .poi-media {
-            position: relative;
-            height: 200px;
-            overflow: hidden;
-        }
-
-        .poi-tile img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform var(--transition-speed);
-        }
-
-        .poi-tile:hover img {
-            transform: scale(1.05);
-        }
-
-        .poi-tile .no-image {
-            height: 100%;
-            background-color: var(--accent-color-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent-color);
-            font-size: 2rem;
-        }
-
-        /* Image Navigation Dots */
-        .image-dots {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 5px;
-        }
-
-        .image-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: rgba(255,255,255,0.5);
-        }
-
-        .image-dot.active {
-            background-color: white;
-        }
-
-        /* Content Section */
-        .poi-content {
-            padding: 1.2rem;
-            display: flex;
-            flex-direction: column;
-            flex-grow: 1;
-        }
-
-        /* Title with Icon */
-        .poi-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            margin-bottom: 0.6rem;
-        }
-
-        .poi-icon {
-            color: var(--accent-color);
-            font-size: 1.2rem;
-            margin-top: 3px;
-        }
-
-        .poi-title {
-            flex: 1;
-        }
-
-        .poi-tile h3 {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 0.25rem;
-            line-height: 1.3;
-        }
-
-        .poi-tile h3 a {
-            text-decoration: none;
-            color: inherit;
-            border-bottom: 2px solid transparent;
-            transition: border-color var(--transition-speed);
-        }
-
-        .poi-tile h3 a:hover {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
-        }
-
-        /* Distance & Meta Information */
-        .poi-meta {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 0.7rem;
-            font-size: 0.9rem;
-            color: var(--muted-text);
-        }
-
-        .poi-distance {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .poi-distance a {
-            color: var(--accent-color);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            transition: color var(--transition-speed);
-        }
-
-        .poi-distance a:hover {
-            color: var(--link-color);
-        }
-
-        /* Additional metadata (opening hours, etc) */
-        .poi-metadata {
-            padding: 0.7rem;
-            background-color: var(--primary-bg);
-            border-radius: 8px;
-            margin-bottom: 0.8rem;
-            font-size: 0.9rem;
-        }
-
-        .metadata-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-        }
-
-        .metadata-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .metadata-item i {
-            color: var(--accent-color);
-            width: 16px;
-            text-align: center;
-        }
-
-        /* Description Styling */
-        .poi-tile p.poi-description {
-            font-size: 0.95rem;
-            color: var(--text-color);
-            flex-grow: 1;
-            margin-bottom: 1rem;
-            overflow: hidden;
-            display: -webkit-box;
-            -webkit-line-clamp: 4;
-            -webkit-box-orient: vertical;
-            transition: all var(--transition-speed);
-        }
-
-        .poi-description.expanded {
-            -webkit-line-clamp: unset;
-        }
-
-        .read-more {
-            color: var(--accent-color);
-            cursor: pointer;
-            font-weight: 500;
-            display: inline-block;
-            margin-top: 0.3rem;
-        }
-
-        .poi-tile p.no-description {
-            font-style: italic;
-            color: var(--muted-text);
-        }
-
-        /* Action Bar */
-        .poi-actions {
-            display: flex;
-            gap: 0.7rem;
-            margin-top: auto;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .action-btn {
-            flex: 1;
-            padding: 0.5rem;
-            background-color: var(--primary-bg);
-            border: none;
-            border-radius: 6px;
-            color: var(--text-color);
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all var(--transition-speed);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        .action-btn:hover {
-            background-color: var(--accent-color-light);
-            color: var(--accent-color);
-        }
-
-        .action-btn.primary {
-            background-color: var(--accent-color);
-            color: white;
-        }
-
-        .action-btn.primary:hover {
-            background-color: var(--link-color);
-            color: white;
-        }
-
-        /* Weather Card */
-        .weather-card {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(0, 0, 0, 0.6);
-            color: white;
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        /* Toast Messages */
-        .toast-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-
-        .toast {
-            padding: 1rem;
-            background-color: var(--card-bg);
-            color: var(--text-color);
-            border-radius: var(--border-radius);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            margin-bottom: 10px;
-            transform: translateX(150%);
-            transition: transform 0.3s ease-out;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast i {
-            font-size: 1.2rem;
-        }
-
-        .toast.success {
-            border-left: 4px solid var(--success-color);
-        }
-
-        .toast.success i {
-            color: var(--success-color);
-        }
-
-        .toast.warning {
-            border-left: 4px solid var(--warning-color);
-        }
-
-        .toast.warning i {
-            color: var(--warning-color);
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            color: var(--muted-text);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        /* Responsive Adjustments */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; background-color: var(--primary-bg); color: var(--text-color); transition: background-color var(--transition-speed); }
+        .app-header { background-color: var(--accent-color); color: white; padding: 1.5rem 1rem 2rem; border-radius: 0 0 24px 24px; text-align: center; margin-bottom: 0.8rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .app-title { font-size: 1.8rem; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .app-title i { font-size: 1.5rem; }
+        #location-info { margin-top: 0.5rem; font-size: 0.9rem; opacity: 0.9; }
+        #app-container { max-width: 1200px; margin: -2.5rem auto 2rem; padding: 0 1rem; position: relative; z-index: 10; }
+        #status-message { text-align: center; padding: 2rem 1rem; font-size: 1.1rem; color: var(--muted-text); min-height: 50px; display: flex; justify-content: center; align-items: center; flex-direction: column; gap: 1rem; }
+        .spinner { width: 40px; height: 40px; border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top-color: var(--accent-color); animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .content-views { position: relative; }
+        #poi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; transition: opacity var(--transition-speed); }
+        .poi-tile { background: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--card-shadow); display: flex; flex-direction: column; transition: transform var(--transition-speed), box-shadow var(--transition-speed); border: 1px solid var(--border-color); position: relative; }
+        .poi-tile:hover { transform: translateY(-5px); box-shadow: var(--hover-shadow); }
+        .category-pill { position: absolute; top: 10px; right: 10px; padding: 0.2rem 0.6rem; border-radius: 999px; color: white; font-size: 0.75rem; text-transform: capitalize; }
+        .category-historic { background-color: var(--warning-color); }
+        .category-tourism { background-color: var(--accent-color); }
+        .category-natural, .category-leisure { background-color: var(--success-color); }
+        .category-worship { background-color: var(--link-color); }
+        .poi-content { padding: 1.2rem; display: flex; flex-direction: column; flex-grow: 1; }
+        .poi-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 0.6rem; }
+        .poi-icon { color: var(--accent-color); font-size: 1.2rem; margin-top: 3px; }
+        .poi-title h3 { font-size: 1.2rem; font-weight: 600; margin: 0; }
+        .poi-title a { text-decoration: none; color: inherit; transition: color var(--transition-speed); }
+        .poi-title a:hover { color: var(--accent-color); }
+        .poi-meta { display: flex; align-items: center; gap: 1rem; font-size: 0.9rem; color: var(--muted-text); margin-bottom: 0.7rem; }
+        .poi-distance { display: flex; align-items: center; gap: 5px; }
+        .poi-distance a { color: var(--accent-color); text-decoration: none; transition: color var(--transition-speed); }
+        .poi-distance a:hover { color: var(--link-color); }
+        footer { text-align: center; padding: 1.5rem; margin-top: 2rem; color: var(--muted-text); font-size: 0.9rem; border-top: 1px solid var(--border-color); }
         @media (max-width: 768px) {
-            .app-header {
-                padding: 1rem 1rem 3rem 1rem;
-            }
-            
-            #app-container {
-                margin-top: -2rem;
-            }
-            
-            .control-panel {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .view-toggles {
-                margin-left: 0;
-                justify-content: center;
-            }
-            
-            #map-view {
-                height: 350px;
-            }
-        }
-
-        /* Accessibility Improvements */
-        button, a {
-            transition: box-shadow var(--transition-speed);
-        }
-
-        button:focus, a:focus, input:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px var(--accent-color-light);
-        }
-
-        .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: var(--accent-color);
-            color: white;
-            padding: 8px;
-            z-index: 100;
-            transition: top 0.3s;
-        }
-
-        .skip-link:focus {
-            top: 0;
-        }
-
-        /* Favorites Feature */
-        .favorite-btn {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: rgba(255, 255, 255, 0.8);
-            border: none;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1;
-            transition: all var(--transition-speed);
-        }
-
-        .favorite-btn:hover {
-            background-color: white;
-        }
-
-        .favorite-btn i {
-            color: #aaa;
-            font-size: 1.2rem;
-            transition: color var(--transition-speed);
-        }
-
-        .favorite-btn.active i {
-            color: #ff4757;
+            #poi-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
@@ -754,61 +74,54 @@
 </head>
 <body>
     <a href="#app-container" class="skip-link">Skip to content</a>
-
     <header class="app-header">
         <h1 class="app-title"><i class="fas fa-compass"></i> Nearby Explorer</h1>
         <p id="location-info">Find interesting places near you</p>
     </header>
-
     <div id="app-container">
-        <!-- Collapsible Container -->
-        <!-- Search and Filter section removed -->
-
-        <!-- Main Content Area -->
         <div id="status-message"></div>
-        
         <div class="content-views">
             <div id="poi-grid"></div>
             <div id="map-view"></div>
         </div>
     </div>
-
-    <!-- Toast Container -->
     <div class="toast-container"></div>
-
-    <!-- Footer -->
     <footer>
         <p>Nearby Explorer &copy; 2025 | By Brian Groth and ChatGPT | Data from OpenStreetMap & Wikidata</p>
     </footer>
-
     <script>
-        // --- Global Variables ---
         const statusElement = document.getElementById('status-message');
         const gridElement = document.getElementById('poi-grid');
-        const mapElement = document.getElementById('map-view');
         const locationInfoElement = document.getElementById('location-info');
-        // Removed: radiusSlider, radiusValue, searchInput, gridToggle, mapToggle
-
         const OVERPASS_API_URL = 'https://overpass-api.de/api/interpreter';
-        const WIKIDATA_SPARQL_URL = 'https://query.wikidata.org/sparql';
-        const OPENCAGE_API_URL = 'https://api.opencagedata.com/geocode/v1/json';
-        const OPENCAGE_API_KEY = '18e2bbfcf38e40079b2879b7ae93e441'; // Demo key, should be replaced in production
         const OPENWEATHER_API_URL = 'https://api.openweathermap.org/data/2.5/weather';
-        const OPENWEATHER_API_KEY = '5b4a58fb8d7303f69fba9d15103c1b50'; // Demo key, should be replaced in production
-
-        let MAX_POIS_TO_DISPLAY = 12;
-        let SEARCH_RADIUS_METERS = 1000;
+        const OPENWEATHER_API_KEY = '5b4a58fb8d7303f69fba9d15103c1b50';
         let userCoords = null;
         let allPOIs = [];
-        let map = null;
-        let markers = [];
-        let weatherData = null;
-        let favoritePOIs = [];
-        let currentCategory = 'all';
 
-        // Helper Functions (unchanged)...
-
-        // Determine category for a POI from its tags
+        // Helper Functions
+        function showLoading(message) {
+            statusElement.innerHTML = `<div class="spinner"></div><div>${message}</div>`;
+            statusElement.style.display = 'flex';
+        }
+        function hideLoading() {
+            statusElement.style.display = 'none';
+        }
+        function generateMapLink(lat, lon) {
+            return `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+        }
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const toRad = x => x * Math.PI / 180;
+            const R = 6371000;
+            const dLat = toRad(lat2 - lat1);
+            const dLon = toRad(lon2 - lon1);
+            const a = Math.sin(dLat/2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) ** 2;
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+        }
+        function formatDistance(meters) {
+            return meters < 1000 ? `${Math.round(meters)} m` : `${(meters/1000).toFixed(2)} km`;
+        }
         function determineCategory(tags) {
             if (tags.historic) return 'historic';
             if (tags.tourism) return 'tourism';
@@ -818,157 +131,51 @@
             return 'all';
         }
 
-        // Show a simple status message
-        function showStatus(message) {
-            statusElement.innerHTML = `<div>${message}</div>`;
-            statusElement.style.display = 'flex';
-        }
-
-        // Clear POI grid
-        function clearGrid() {
-            gridElement.innerHTML = '';
-        }
-
-        // Clear map markers
-        function clearMarkers() {
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-        }
-
-        // Fetch current weather from OpenWeather and display
-        async function fetchWeather() {
-            try {
-                const { lat, lng } = userCoords;
-                const resp = await fetch(
-                    `${OPENWEATHER_API_URL}?lat=${lat}&lon=${lng}&units=metric&appid=${OPENWEATHER_API_KEY}`
-                );
-                weatherData = await resp.json();
-                showWeather();
-            } catch (e) {
-                console.error('Weather fetch error:', e);
-            }
-        }
-
-        // Render weather card on the map
-        function showWeather() {
-            if (!weatherData) return;
-            const card = document.createElement('div');
-            card.className = 'weather-card';
-            const iconCode = weatherData.weather[0].icon;
-            const temp = Math.round(weatherData.main.temp);
-            card.innerHTML = `
-                <i class="fas fa-${getWeatherIcon(iconCode)}"></i>
-                <span>${temp}°C</span>
-            `;
-            mapElement.appendChild(card);
-        }
-
-        // Map OpenWeather icon codes to FontAwesome
-        function getWeatherIcon(icon) {
-            const code = icon.slice(0, 2);
-            switch (code) {
-                case '01': return 'sun';
-                case '02': return 'cloud-sun';
-                case '03': return 'cloud';
-                case '04': return 'cloud-meatball';
-                case '09': return 'cloud-showers-heavy';
-                case '10': return 'cloud-sun-rain';
-                case '11': return 'poo-storm';
-                case '13': return 'snowflake';
-                case '50': return 'smog';
-                default:   return 'cloud';
-            }
-        }
-
-        // Fetch POIs from Overpass API
         async function fetchPOIs() {
             showLoading('Searching for places...');
             const { lat, lng } = userCoords;
-            const radius = SEARCH_RADIUS_METERS;
-            const query = `
-[out:json][timeout:25];
-(
-  node(around:${radius},${lat},${lng})[tourism];
-  node(around:${radius},${lat},${lng})[historic];
-  node(around:${radius},${lat},${lng})[natural];
-  node(around:${radius},${lat},${lng})[leisure=park];
-  node(around:${radius},${lat},${lng})[amenity=place_of_worship];
-);
-out center;`;
+            const radius = 1000;
+            const query = `\n[out:json][timeout:25];\n(  node(around:${radius},${lat},${lng})[tourism];  node(around:${radius},${lat},${lng})[historic];  node(around:${radius},${lat},${lng})[natural];  node(around:${radius},${lat},${lng})[leisure=park];  node(around:${radius},${lat},${lng})[amenity=place_of_worship];);\nout center;`;
             try {
-                const resp = await fetch(OVERPASS_API_URL, {
-                    method: 'POST',
-                    body: query
-                });
+                const resp = await fetch(OVERPASS_API_URL, { method: 'POST', body: query });
                 const data = await resp.json();
-                allPOIs = data.elements.map(el => ({
-                    id: el.id,
-                    name: el.tags.name || 'Unknown',
-                    tags: el.tags || {},
-                    lat: el.lat || el.center.lat,
-                    lon: el.lon || el.center.lon,
-                    category: determineCategory(el.tags || {})
-                }));
+                allPOIs = data.elements.map(el => ({ id: el.id, name: el.tags.name || 'Unknown', tags: el.tags || {}, lat: el.lat || el.center.lat, lon: el.lon || el.center.lon, category: determineCategory(el.tags || {}) }));
                 hideLoading();
                 renderPOIs();
             } catch (e) {
                 console.error('POI fetch error:', e);
-                showStatus('Failed to fetch places.');
+                statusElement.textContent = 'Failed to fetch places.';
             }
         }
 
-        // Render POIs in grid or map view
+        function clearGrid() { gridElement.innerHTML = ''; }
+
         function renderPOIs() {
             clearGrid();
-            clearMarkers();
-            statusElement.style.display = 'none';
-
-            // No search/filter UI, so just show all
             let filtered = allPOIs;
-
-            if (filtered.length === 0) {
-                showStatus('No places found.');
+            if (!filtered.length) {
+                statusElement.textContent = 'No places found.';
                 return;
             }
-
-            const slice = filtered.slice(0, MAX_POIS_TO_DISPLAY);
-
-            // Only grid view is available
-            gridElement.style.display = 'grid';
-            mapElement.style.display = 'none';
-            slice.forEach(poi => {
+            hideLoading();
+            filtered.slice(0, 12).forEach(poi => {
                 const tile = document.createElement('div');
                 tile.className = 'poi-tile';
-                tile.style.position = 'relative';
-
-                // Category pill (badge)
                 const pill = document.createElement('div');
                 pill.className = `category-pill category-${poi.category}`;
-                pill.textContent = poi.category.charAt(0).toUpperCase() + poi.category.slice(1);
-                pill.style.position = 'absolute';
-                pill.style.top = '10px';
-                pill.style.right = '10px';
-                pill.style.zIndex = '2';
+                pill.textContent = poi.category;
                 tile.appendChild(pill);
-
-                // Content
                 const content = document.createElement('div');
                 content.className = 'poi-content';
                 content.innerHTML = `
                     <div class="poi-header">
                         <i class="fas fa-map-marker-alt poi-icon"></i>
-                        <h3 class="poi-title">
-                            <a href="https://www.openstreetmap.org/?mlat=${poi.lat}&mlon=${poi.lon}#map=18/${poi.lat}/${poi.lon}" target="_blank">
-                                ${poi.name}
-                            </a>
-                        </h3>
+                        <div class="poi-title"><h3><a href="https://www.openstreetmap.org/?mlat=${poi.lat}&mlon=${poi.lon}#map=18/${poi.lat}/${poi.lon}" target="_blank">${poi.name}</a></h3></div>
                     </div>
                     <div class="poi-meta">
                         <div class="poi-distance">
                             <i class="fas fa-location-arrow"></i>
-                            <a href="${generateMapLink(poi.lat, poi.lon, poi.name)}" target="_blank">
-                                ${formatDistance(calculateDistance(userCoords.lat, userCoords.lng, poi.lat, poi.lon))}
-                            </a>
+                            <a href="${generateMapLink(poi.lat, poi.lon)}" target="_blank">${formatDistance(calculateDistance(userCoords.lat, userCoords.lng, poi.lat, poi.lon))}</a>
                         </div>
                     </div>
                 `;
@@ -977,29 +184,21 @@ out center;`;
             });
         }
 
-        // Remove event listeners for removed elements
-
-        // Initialize app on load
         window.addEventListener('load', () => {
-            const saved = localStorage.getItem('favoritePOIs');
-            favoritePOIs = saved ? JSON.parse(saved) : [];
-
             if (navigator.geolocation) {
                 showLoading('Detecting your location...');
                 navigator.geolocation.getCurrentPosition(async pos => {
                     userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
                     locationInfoElement.textContent = `Lat: ${userCoords.lat.toFixed(4)}, Lon: ${userCoords.lng.toFixed(4)}`;
-                    // Optionally, you can call initMap() and fetchWeather() if you want to keep those features
                     await fetchPOIs();
                 }, e => {
                     console.error('Geo error:', e);
-                    showStatus('Location access denied.');
+                    statusElement.textContent = 'Location access denied.';
                 });
             } else {
-                showStatus('Geolocation not supported.');
+                statusElement.textContent = 'Geolocation not supported.';
             }
         });
     </script>
-
 </body>
 </html>
